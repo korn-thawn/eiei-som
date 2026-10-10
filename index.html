@@ -526,7 +526,7 @@
       el("p", { class: "note", text: CONFIG.ticketNote }),
     ];
     if (CONFIG.showNoCount && state.noTries > 0) {
-      nodes.push(el("p", { class: "tries", text: "(กด \"" + CONFIG.noText + "\" ไป " + state.noTries + " ครั้ง แมวจำไว้แล้ว)" }));
+      nodes.push(el("p", { class: "tries", text: "(ส้มกด \"" + CONFIG.noText + "\" ไป " + state.noTries + " ครั้ง กรจำไว้แล้ว)" }));
     }
     render(...nodes);
   }
