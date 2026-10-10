@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เผยใต๋เลยละกัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Thai+Looped:wght@400;600&family=Mali:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #e3ebd0;
+    --paper: #fbf8ee;
+    --ink: #2f3a25;
+    --muted: #707d61;
+    --accent: #5e8a39;
+    --accent-shadow: #3d5c22;
+    --stub: #edf2df;
+    --fur: #f2a14a;
+    --fur-dark: #c76d21;
+    --fur-light: #fde4c3;
+    --nose: #e27a83;
+    --tear: #7ec4ea;
+  }
+
+  * { box-sizing: border-box; }
+  html { touch-action: manipulation; } /* กัน double-tap zoom ตอนไล่จิ้มปุ่ม (pinch zoom ยังใช้ได้) */
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: calc(104px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans Thai Looped", system-ui, sans-serif;
+    line-height: 1.55;
+    overflow-x: clip;
+  }
+
+  .wrap { position: relative; width: min(100%, 380px); }
+
+  /* ---------- cat ---------- */
+  #cat {
+    position: absolute;
+    left: 50%;
+    top: -100px;
+    width: 160px;
+    height: 120px;
+    margin-left: -80px;
+    z-index: 2;
+    pointer-events: none;
+    overflow: visible;
+  }
+  #cat .line { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  #cat .thin { stroke-width: 1.6; opacity: .55; }
+  #cat .fur { fill: var(--fur); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
+  #cat .stripe { fill: none; stroke: var(--fur-dark); stroke-width: 4; stroke-linecap: round; }
+  #cat .light { fill: var(--fur-light); }
+  #cat .ink { fill: var(--ink); }
+  #cat .inner-ear { fill: var(--fur-dark); }
+  #cat .nose { fill: var(--nose); }
+  #cat .head { transform-origin: 80px 80px; transition: transform .3s; }
+
+  #cat .m-sulky, #cat .m-happy { display: none; }
+  #cat[data-mood="sulky"] .m-normal, #cat[data-mood="happy"] .m-normal { display: none; }
+  #cat[data-mood="sulky"] .m-sulky, #cat[data-mood="happy"] .m-happy { display: inline; }
+  #cat[data-mood="sulky"] .head { transform: rotate(-5deg); }
+
+  /* ---------- ticket ---------- */
+  .ticket {
+    position: relative;
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 0 14px 30px -16px var(--accent-shadow);
+  }
+  .main {
+    position: relative;
+    padding: 30px 22px 26px;
+    text-align: center;
+    overflow: hidden;
+    border-radius: 18px 18px 0 0;
+    animation: fade .35s ease both;
+  }
+  .stub {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 22px;
+    background: var(--stub);
+    border-top: 2px dashed var(--muted);
+    border-radius: 0 0 18px 18px;
+    font: 500 .72rem/1.4 "IBM Plex Mono", monospace;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .stub::before, .stub::after {
+    content: "";
+    position: absolute;
+    top: -11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ground);
+  }
+  .stub::before { left: -10px; }
+  .stub::after { right: -10px; }
+  .stub span { overflow-wrap: anywhere; }
+
+  .label {
+    margin: 0 0 6px;
+    font: 500 .72rem/1.4 "IBM Plex Mono", monospace;
+    letter-spacing: .14em;
+    color: var(--muted);
+  }
+  h1, h2 {
+    margin: 0 0 4px;
+    font-family: "Mali", cursive;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  h1 { font-size: 1.85rem; }
+  h2 { font-size: 1.5rem; }
+  .sub { margin: 0 0 4px; color: var(--muted); overflow-wrap: anywhere; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    font: 700 1.15rem/1 "Mali", cursive;
+    min-height: 48px;
+    padding: .7em 1.6em;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--paper);
+    box-shadow: 0 4px 0 var(--accent-shadow);
+    cursor: pointer;
+    white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .btn:active:not(.yes):not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-shadow); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+  .btn:focus-visible { outline: 3px solid var(--accent-shadow); outline-offset: 3px; }
+
+  .btn.ghost {
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 2px var(--muted);
+  }
+  .btn.loose {
+    position: fixed;
+    z-index: 50;
+    margin: 0;
+    max-width: calc(100vw - 24px);
+    transition: left .18s ease-out, top .18s ease-out;
+  }
+  .yes {
+    transform: scale(var(--s, 1));
+    transition: transform .25s cubic-bezier(.3, 1.5, .5, 1);
+  }
+
+  .ask-btns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    min-height: 120px;
+    margin-top: 14px;
+  }
+
+  /* ---------- final ticket ---------- */
+  .rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 14px;
+    margin: 18px 0 0;
+    text-align: left;
+  }
+  .rows dt {
+    font: 500 .72rem/1.9 "IBM Plex Mono", monospace;
+    letter-spacing: .1em;
+    color: var(--muted);
+  }
+  .rows dd {
+    margin: 0;
+    font: 600 1.05rem/1.5 "Mali", cursive;
+    overflow-wrap: anywhere;
+  }
+  .stamp {
+    position: absolute;
+    right: 12px;
+    top: 118px;
+    padding: 4px 10px;
+    border: 3px solid currentColor;
+    border-radius: 8px;
+    font: 600 .9rem/1.2 "IBM Plex Mono", monospace;
+    letter-spacing: .12em;
+    color: var(--accent-shadow);
+    opacity: .85;
+    transform: rotate(-12deg);
+    animation: stamp .45s .2s cubic-bezier(.2, 1.6, .4, 1) both;
+  }
+  .note { margin: 20px 0 0; color: var(--muted); }
+  .tries { margin: 6px 0 0; font-size: .85rem; color: var(--muted); }
+
+  /* ---------- hearts ---------- */
+  .heart {
+    position: fixed;
+    z-index: 60;
+    pointer-events: none;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--nose);
+    animation: rise 1.2s ease-out forwards;
+  }
+
+  /* ---------- crying cats (กดปุ่มหนี) ---------- */
+  .cry-cat {
+    position: fixed;
+    z-index: 55;
+    width: var(--size);
+    height: var(--size);
+    margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+    pointer-events: none;
+    animation: burst var(--dur) cubic-bezier(.12, .75, .35, 1) forwards;
+  }
+  .cry-cat .f { fill: var(--fur); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+  .cry-cat .s { fill: none; stroke: var(--fur-dark); stroke-width: 2; stroke-linecap: round; }
+  .cry-cat .l { fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; }
+  .cry-cat .e { fill: var(--ink); }
+  .cry-cat .t { fill: var(--tear); }
+  @keyframes burst {
+    0% { opacity: 1; transform: translate(0, 0) scale(.3) rotate(0deg); }
+    65% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1) rotate(var(--rot)); }
+  }
+
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes stamp { from { opacity: 0; transform: rotate(-12deg) scale(2); } }
+  @keyframes rise {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(.6); }
+    15% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), -160px) scale(1.1) rotate(var(--rot)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- แมวส้มหน้าตาย ดีไซน์เอง: data-mood = normal / sulky / happy -->
+  <svg id="cat" data-mood="normal" viewBox="0 0 160 120" aria-hidden="true">
+    <path class="fur" d="M38 100 Q38 80 80 80 Q122 80 122 100 Z"/>
+    <g class="head">
+      <path class="fur" d="M34 46 L40 8 L68 30 Z"/>
+      <path class="fur" d="M126 46 L120 8 L92 30 Z"/>
+      <path class="inner-ear" d="M41 36 L44 18 L58 31 Z"/>
+      <path class="inner-ear" d="M119 36 L116 18 L102 31 Z"/>
+      <ellipse class="fur" cx="80" cy="62" rx="50" ry="38"/>
+      <path class="stripe" d="M80 26 v12 M67 28 l3 10 M93 28 l-3 10 M31 58 h10 M32 67 h9 M129 58 h-10 M128 67 h-9"/>
+      <ellipse class="light" cx="80" cy="77" rx="18" ry="12"/>
+
+      <g class="m-normal">
+        <path class="line" d="M55 60 h14 M91 60 h14"/>
+        <path class="ink" d="M56 60 a6 6 0 0 0 12 0 Z M92 60 a6 6 0 0 0 12 0 Z"/>
+      </g>
+      <g class="m-sulky">
+        <path class="line" d="M54 47 L68 52 M106 47 L92 52"/>
+        <path class="line" d="M55 60 h14 M91 60 h14"/>
+        <path class="ink" d="M56 60 a6 3.5 0 0 0 12 0 Z M92 60 a6 3.5 0 0 0 12 0 Z"/>
+      </g>
+      <g class="m-happy">
+        <path class="line" d="M55 62 q7 -4 14 0 M91 62 q7 -4 14 0"/>
+      </g>
+
+      <path class="nose" d="M76 70 h8 l-4 5 Z"/>
+      <path class="line thin" d="M62 75 l-22 -3 M62 79 l-22 2 M98 75 l22 -3 M98 79 l22 2"/>
+
+      <path class="line m-normal" d="M80 75 v4 M74 80 h12"/>
+      <path class="line m-sulky" d="M73 85 q7 -6 14 0"/>
+      <path class="line m-happy" d="M73 81 q8 3 15 -3"/>
+    </g>
+    <ellipse class="fur" cx="58" cy="101" rx="13" ry="8"/>
+    <ellipse class="fur" cx="102" cy="101" rx="13" ry="8"/>
+    <path class="line thin" d="M54 103 v3 M58 104 v3 M62 103 v3 M98 103 v3 M102 104 v3 M106 103 v3"/>
+  </svg>
+
+  <div class="ticket">
+    <div class="main" id="main"></div>
+    <div class="stub"><span id="stub-l"></span><span id="stub-r"></span></div>
+  </div>
+</div>
+
+<script>
+  // ╔══════════════════════════════════════════════╗
+  // ║   ตั้งค่าทั้งหมดอยู่ตรงนี้ ไม่ต้องไปแก้ที่อื่น          ║
+  // ╚══════════════════════════════════════════════╝
+  const CONFIG = {
+    her: "ส้ม",
+    from: "กร",
+
+    // ---------- หน้า 1: ----------
+    askSub: "ถึงน้ำส้ม",
+    askTitle: "คบกับเรามั้ย?",
+    yesText: "ลุยเลยเดะ",
+    noText: "คิดดูก่อน",
+
+    // ---------- ปุ่มหนี ----------
+    noPresses: 17,
+    noLines: [
+      "ไม่คบกันจิงหรอ?",
+      "ลองคิดดูใหม่",
+      "คิดใหม่อีกที",
+      "ไม่จิงเดะ",
+      "เห้ย กดคบซักที",
+      "ไม่อะไรเยอะแยะ",
+      "ไป กด ใช่",
+      "ห้ามกดอันนี้",
+      "ดื้อนะ"
+    ],
+    noLastLine: "ล็อคผลคับ", // ข้อความครั้งสุดท้าย
+    yesGrowPerPress: 0.15,      // ปุ่ม yes ใหญ่ขึ้นครั้งละเท่าไร
+    yesMaxScale: 1.8,           // ใหญ่สุดกี่เท่า (เกิน ~1.8 อาจล้นจอมือถือ)
+
+    // ---------- แมวร้องไห้ ----------
+    cryCats: 24,                // จำนวนแมวที่พุ่งออกมาต่อการกดปุ่มหนี 1 ครั้ง
+    cryCatsFinal: 36,           // จำนวนแมวตอนกดปุ่มหนีได้จริงครั้งสุดท้าย
+    respectReducedMotion: true, // true = เครื่องที่ตั้ง "ลดการเคลื่อนไหว" จะไม่มีแมวพุ่ง/หัวใจลอย
+
+    // ---------- หน้า 2: ตั๋วคบกัน ----------
+    ticketLabel: "แจกตั๋วค้าบ",
+    ticketTitle: "เย่ ส้มกดยืนยันแล้ว",
+    ticketStamp: "การันตี",
+    ticketNoPrefix: "SM",       // เลขตั๋วจะเป็น LV-0000
+    ticketNote: "แคปจอมาให้ดูด้วย",
+    showNoCount: true,          // โชว์ว่ากดปุ่มหนีไปกี่ครั้ง
+  };
+  // ================================================
+
+  const state = { noTries: 0 };
+  const main = document.getElementById("main");
+  const cat = document.getElementById("cat");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const skipMotion = () => CONFIG.respectReducedMotion && reduceMotion.matches;
+
+  function el(tag, props = {}, children = []) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of children) n.append(c);
+    return n;
+  }
+
+  function setMood(m) { cat.dataset.mood = m; }
+
+  function setStub(l, r) {
+    document.getElementById("stub-l").textContent = l;
+    document.getElementById("stub-r").textContent = r;
+  }
+
+  function render(...nodes) {
+    main.replaceChildren(...nodes);
+    document.querySelectorAll("body > .btn.loose").forEach((b) => b.remove());
+    // เล่น fade ใหม่ทุกหน้า (ใช้ opacity เท่านั้น ห้ามใช้ transform ไม่งั้นปุ่ม fixed จะเพี้ยน)
+    main.style.animation = "none";
+    void main.offsetWidth;
+    main.style.animation = "";
+  }
+
+  function hearts(fromEl) {
+    if (skipMotion()) return;
+    const r = fromEl.getBoundingClientRect();
+    const x = Math.min(Math.max(r.left + r.width / 2, 24), innerWidth - 24);
+    const y = r.top;
+    for (let i = 0; i < 8; i++) {
+      const h = el("span", { class: "heart", text: "♥", "aria-hidden": "true" });
+      h.style.left = x + "px";
+      h.style.top = y + "px";
+      h.style.setProperty("--dx", (Math.random() * 120 - 60).toFixed(0) + "px");
+      h.style.setProperty("--rot", (Math.random() * 60 - 30).toFixed(0) + "deg");
+      h.style.animationDelay = (i * 0.06).toFixed(2) + "s";
+      h.addEventListener("animationend", () => h.remove());
+      document.body.append(h);
+    }
+  }
+
+  // แมวส้มตัวจิ๋วร้องไห้ (วาดเอง) พุ่งกระจายออกจากปุ่มหนี
+  const CRY_CAT_SVG =
+    '<svg viewBox="0 0 40 38" aria-hidden="true">' +
+    '<path class="f" d="M6 16 L8 2 L17 9 Z M34 16 L32 2 L23 9 Z"/>' +
+    '<ellipse class="f" cx="20" cy="20" rx="16" ry="13"/>' +
+    '<path class="s" d="M20 8 v4 M15 9 l1 3 M25 9 l-1 3"/>' +
+    '<path class="l" d="M10 19 h7 M23 19 h7 M17 27 h6"/>' +
+    '<path class="e" d="M11 19 a2.5 2.5 0 0 0 5 0 Z M24 19 a2.5 2.5 0 0 0 5 0 Z"/>' +
+    '<path class="t" d="M13 22 q-2.5 5 0 7 q2.5 -2 0 -7 Z M27 22 q-2.5 5 0 7 q2.5 -2 0 -7 Z"/>' +
+    "</svg>";
+
+  function cryBurst(fromEl, count = CONFIG.cryCats) {
+    if (skipMotion()) return;
+    const r = fromEl.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    for (let i = 0; i < count; i++) {
+      const c = el("span", { class: "cry-cat" });
+      c.innerHTML = CRY_CAT_SVG; // ค่าคงที่ ไม่มีข้อมูลจากผู้ใช้
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+      const dist = 90 + Math.random() * 110;
+      c.style.left = x + "px";
+      c.style.top = y + "px";
+      c.style.setProperty("--size", (26 + Math.random() * 18).toFixed(0) + "px");
+      c.style.setProperty("--tx", (Math.cos(angle) * dist).toFixed(0) + "px");
+      c.style.setProperty("--ty", (Math.sin(angle) * dist + 40).toFixed(0) + "px"); // +40 ให้ร่วงลงนิดๆ
+      c.style.setProperty("--rot", (Math.random() * 360 - 180).toFixed(0) + "deg");
+      c.style.setProperty("--dur", (0.8 + Math.random() * 0.5).toFixed(2) + "s");
+      c.addEventListener("animationend", () => c.remove());
+      document.body.append(c);
+    }
+  }
+
+  // ---------- 1. ask ----------
+  function ask() {
+    setMood("normal");
+    setStub("FROM " + CONFIG.from, "TO " + CONFIG.her);
+
+    const yes = el("button", { class: "btn yes", type: "button", text: CONFIG.yesText });
+    const no = el("button", { class: "btn ghost", type: "button", text: CONFIG.noText });
+    let lastDodge = 0;
+
+    function moveNo() {
+      const vv = window.visualViewport;
+      const vw = vv ? vv.width : innerWidth;
+      const vh = vv ? vv.height : innerHeight;
+      const ox = vv ? vv.offsetLeft : 0;
+      const oy = vv ? vv.offsetTop : 0;
+      const m = 12;
+
+      if (!no.classList.contains("loose")) {
+        const r0 = no.getBoundingClientRect();
+        no.style.left = r0.left + "px";
+        no.style.top = r0.top + "px";
+        no.classList.add("loose");
+        // ย้ายไปอยู่ใต้ body ให้หลุดจาก stacking context ของ .main (fade animation) ไม่งั้นโดนท้ายตั๋ว/แมวทับ
+        document.body.append(no);
+      }
+      const r = no.getBoundingClientRect();
+      const maxX = Math.max(m, vw - r.width - m);
+      const maxY = Math.max(m, vh - r.height - m);
+      let x, y, tries = 0;
+      do {
+        x = m + Math.random() * (maxX - m);
+        y = m + Math.random() * (maxY - m);
+      } while (++tries < 30 && Math.hypot(x + ox - r.left, y + oy - r.top) < 140);
+      void no.offsetWidth;
+      no.style.left = (x + ox) + "px";
+      no.style.top = (y + oy) + "px";
+    }
+
+    function dodge(e) {
+      if (state.noTries >= CONFIG.noPresses) return; // ครบแล้ว ยอมให้กด
+      if (e && e.cancelable) e.preventDefault();   // กัน click ตามมาบน iOS/Android
+      const now = performance.now();
+      if (now - lastDodge < 250) return;           // แตะครั้งเดียวยิงทั้ง pointerdown + touchstart
+      lastDodge = now;
+
+      state.noTries++;
+      no.textContent = state.noTries >= CONFIG.noPresses
+        ? CONFIG.noLastLine
+        : CONFIG.noLines[(state.noTries - 1) % CONFIG.noLines.length];
+      setMood("sulky");
+      yes.style.setProperty("--s", Math.min(1 + state.noTries * CONFIG.yesGrowPerPress, CONFIG.yesMaxScale));
+      cryBurst(no); // พุ่งจากตำแหน่งเดิมก่อนปุ่มหนี
+      moveNo();
+    }
+
+    no.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") dodge(e); });
+    no.addEventListener("pointerdown", dodge);
+    no.addEventListener("touchstart", dodge, { passive: false });
+    no.addEventListener("click", (e) => {
+      if (state.noTries < CONFIG.noPresses) { e.preventDefault(); dodge(); return; }
+      cryBurst(no, CONFIG.cryCatsFinal);
+      ticket();
+    });
+    yes.addEventListener("click", () => {
+      // ปุ่มหนีหลุดจากแถวแล้วปุ่ม yes เลื่อนมาอยู่ใต้นิ้ว กัน ghost click จากการแตะที่เพิ่งหนี
+      if (performance.now() - lastDodge < 500) return;
+      hearts(yes);
+      ticket();
+    });
+
+    render(
+      el("p", { class: "sub", text: CONFIG.askSub }),
+      el("h1", { text: CONFIG.askTitle }),
+      el("div", { class: "ask-btns" }, [yes, no]),
+    );
+  }
+
+  // ---------- 2. ticket ----------
+  function ticket() {
+    setMood("happy");
+    const no = CONFIG.ticketNoPrefix + "-" + String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    // setStub("ยืนยันแล้ว", "NO. " + no);
+    setStub("ยืนยันแล้ว", "คิคิ");
+    const since = new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+
+    const nodes = [
+      el("p", { class: "label", text: CONFIG.ticketLabel }),
+      el("h2", { text: CONFIG.ticketTitle }),
+      el("span", { class: "stamp", text: CONFIG.ticketStamp, "aria-hidden": "true" }),
+      el("dl", { class: "rows" }, [
+        el("dt", { text: "ผู้ยืนยัน" }), el("dd", { text: CONFIG.her }),
+        el("dt", { text: "คนขอ" }), el("dd", { text: CONFIG.from }),
+        el("dt", { text: "เวลา" }), el("dd", { text: since }),
+      ]),
+      el("p", { class: "note", text: CONFIG.ticketNote }),
+    ];
+    if (CONFIG.showNoCount && state.noTries > 0) {
+      nodes.push(el("p", { class: "tries", text: "(กด \"" + CONFIG.noText + "\" ไป " + state.noTries + " ครั้ง แมวจำไว้แล้ว)" }));
+    }
+    render(...nodes);
+  }
+
+  ask();
+</script>
+</body>
+</html>
